@@ -23,7 +23,7 @@ services:
       - caddy_data:/data
 
   t_transmission:
-    image: ghcr.io/onedr0p/transmission:4.0.2
+    image: ghcr.io/onedr0p/transmission:4.0.3
     container_name: t_transmission
     user: 1001:1001
     environment:
