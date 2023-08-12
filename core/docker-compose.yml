@@ -2,7 +2,6 @@ version: "3"
 
 networks:
   proxy:
-    name: proxy
 
 volumes:
   caddy_data:
@@ -17,7 +16,7 @@ services:
     ports:
       - "8080:80"
     environment:
-      - CADDY_INGRESS_NETWORKS=proxy
+      - CADDY_INGRESS_NETWORKS=core_proxy
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - caddy_data:/data
