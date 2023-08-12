@@ -8,7 +8,7 @@ services:
     env_file: ./.settings.env
     restart: always
     volumes:
-      - /${HOMEDIR}/gotosocial/data/db:/gotosocial/storage
+      - ${HOMEDIR}/gotosocial/data/db:/gotosocial/storage
 
   cloudflared:
     image: cloudflare/cloudflared:2023.7.3
