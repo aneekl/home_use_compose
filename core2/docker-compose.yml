@@ -37,7 +37,7 @@ volumes:
       - TRANSMISSION__PEER_LIMIT_PER_TORRENT=100
       - TRANSMISSION__CACHE_SIZE_MB=128
     volumes:
-      - ${homedir}/t_transmission:/config
+      - ${HOMEDIR}/t_transmission:/config
       - ${EXTERNAL_DIR}/movies:/downloads
       - watch:/watch
     restart: unless-stopped
