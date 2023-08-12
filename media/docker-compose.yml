@@ -1,0 +1,143 @@
+version: "3"
+
+networks:
+  proxy:
+    external: true
+
+volumes:
+  komga_tmp:
+  cache:
+
+services:
+  # navidrome:
+  #   image: deluan/navidrome:latest
+  #   container_name: navidrome
+  #   user: 1000:1000
+  #   restart: unless-stopped
+  #   environment:
+  #     ND_SCANSCHEDULE: 1h
+  #     ND_LOGLEVEL: info
+  #     ND_SESSIONTIMEOUT: 24h
+  #     ND_TRANSCODINGCACHESIZE: 1GB
+  #     ND_IMAGECACHESIZE: 500MB
+  #     TZ: ${TIMEZONE}
+  #   volumes:
+  #     - "${HOMEDIR}/navidrome:/data"
+  #     - "${CACHEDIR}/navidrome:/data/cache"
+  #     - "${EXTERNAL_DIR}/another/music:/music:ro"
+  #   networks:
+  #     - proxy
+  #   labels:
+  #     caddy: http://music.${DOMAIN}
+  #     caddy.reverse_proxy: "{{upstreams 4533}}"
+
+  komga:
+    image: gotson/komga:1.3.1
+    container_name: komga
+    volumes:
+      - ${HOMEDIR}/komga/:/config
+      - ${EXTERNAL_DIR}/another/komga:/data
+      - komga_tmp:/tmp
+    user: 1000:1000
+    restart: unless-stopped
+    environment:
+      - TZ=${TIMEZONE}
+      - LOGGING_LEVEL_ORG_GOTSON_KOMGA=TRACE
+    networks:
+      - proxy
+    labels:
+      caddy: http://manga.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 25600}}"
+
+  sonarr:
+    image: ghcr.io/onedr0p/sonarr:3.0.10.1567
+    container_name: sonarr
+    user: 1000:1000
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HOMEDIR}/sonarr/:/config
+      - ${EXTERNAL_DIR}/another/anime/:/anime
+      - ${EXTERNAL_DIR}/another/downloads:/downloads
+    depends_on:
+      - prowlarr
+      - qbittorrent
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      caddy: http://sonarr.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 8989}}"
+
+  qbittorrent:
+    image: ghcr.io/onedr0p/qbittorrent:4.5.4
+    container_name: qbittorrent
+    user: 1000:1000
+    environment:
+      - TZ=${TIMEZONE}
+      - QBITTORRENT__PORT=8086
+      - QBITTORRENT__BT_PORT=6881
+    volumes:
+      - ${HOMEDIR}/qbittorrent:/config
+      - ${EXTERNAL_DIR}/another/downloads:/downloads
+      - cache:/incomplete
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      caddy: http://torrent.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 8086}}"
+
+  prowlarr:
+    image: ghcr.io/onedr0p/prowlarr-develop:1.8.1.3837
+    container_name: prowlarr
+    user: 1000:1000
+    environment:
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HOMEDIR}/prowlarr:/config
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      caddy: http://prowlarr.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 9696}}"
+
+  jellyfin:
+    image: jellyfin/jellyfin:10.8.10
+    container_name: jellyfin
+    user: 1000:1000
+    environment:
+      - TZ=${TIMEZONE}
+      - JELLYFIN_DATA_DIR=/config/data
+      - JELLYFIN_CONFIG_DIR=/config
+      - JELLYFIN_LOG_DIR=/config/log
+      - JELLYFIN_CACHE_DIR=/config/cache
+    volumes:
+      - ${HOMEDIR}/jellyfin:/config
+      - ${EXTERNAL_DIR}/another/anime:/data/anime:ro
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      caddy: http://jellyfin.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 8096}}"
+
+  jellyseerr:
+    image: fallenbagel/jellyseerr:1.6.0
+    container_name: jellyseerr
+    user: 1000:1000
+    environment:
+      - LOG_LEVEL=debug
+      - TZ=${TIMEZONE}
+    volumes:
+      - ${HOMEDIR}/jellyseer:/app/config
+    restart: unless-stopped
+    networks:
+      - proxy
+    depends_on:
+      - jellyfin
+      - sonarr
+    labels:
+      caddy: http://jellyseerr.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 5055}}"

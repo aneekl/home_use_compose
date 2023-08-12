@@ -1,0 +1,48 @@
+version: "2.1"
+services:
+
+networks:
+  proxy:
+
+volumes:
+  watch:
+  caddy_data:
+
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:2.8.4
+    container_name: caddy
+    restart: unless-stopped
+    networks:
+      - proxy
+    ports:
+      - "8080:80"
+    environment:
+      - CADDY_INGRESS_NETWORKS=proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - caddy_data:/data
+
+  t_transmission:
+    image: ghcr.io/onedr0p/transmission:4.0.2
+    container_name: t_transmission
+    user: 1001:1001
+    environment:
+      - TZ=${TIMEZONE}
+      - TRANSMISSION__RPC_USERNAME=${USERNAME}
+      - TRANSMISSION__RPC_PASSWORD=${PASSWORD}
+      - TRANSMISSION__DOWNLOAD_DIR=/downloads
+      - TRANSMISSION__INCOMPLETE_DIR_ENABLED=false
+      - TRANSMISSION__PEER_PORT=8874
+      - TRANSMISSION__PEER_LIMIT_GLOBAL=1000
+      - TRANSMISSION__PEER_LIMIT_PER_TORRENT=100
+      - TRANSMISSION__CACHE_SIZE_MB=128
+    volumes:
+      - ${homedir}/t_transmission:/config
+      - ${EXTERNAL_DIR}/movies:/downloads
+      - watch:/watch
+    restart: unless-stopped
+    networks:
+      - proxy
+    labels:
+      caddy: http://loadbit.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 9091}}"

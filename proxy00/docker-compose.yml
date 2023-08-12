@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  caddy:
+    image: iarekylew00t/caddy-cloudflare:2.7.2
+    container_name: caddy
+    restart: unless-stopped
+    environment:
+      - cf_token=${CF_API_TOKEN}
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    volumes:
+      - ./config:/etc/caddy
+      - ./caddy/site:/srv
+      - ./caddy/caddy_data:/data
+      - ./caddy/caddy_config:/config  
