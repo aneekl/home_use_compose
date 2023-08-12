@@ -9,27 +9,27 @@ volumes:
   cache:
 
 services:
-  # navidrome:
-  #   image: deluan/navidrome:latest
-  #   container_name: navidrome
-  #   user: 1000:1000
-  #   restart: unless-stopped
-  #   environment:
-  #     ND_SCANSCHEDULE: 1h
-  #     ND_LOGLEVEL: info
-  #     ND_SESSIONTIMEOUT: 24h
-  #     ND_TRANSCODINGCACHESIZE: 1GB
-  #     ND_IMAGECACHESIZE: 500MB
-  #     TZ: ${TIMEZONE}
-  #   volumes:
-  #     - "${HOMEDIR}/navidrome:/data"
-  #     - "${CACHEDIR}/navidrome:/data/cache"
-  #     - "${EXTERNAL_DIR}/another/music:/music:ro"
-  #   networks:
-  #     - proxy
-  #   labels:
-  #     caddy: http://music.${DOMAIN}
-  #     caddy.reverse_proxy: "{{upstreams 4533}}"
+  navidrome:
+    image: deluan/navidrome:latest
+    container_name: navidrome
+    user: 1000:1000
+    restart: unless-stopped
+    environment:
+      ND_SCANSCHEDULE: 1h
+      ND_LOGLEVEL: info
+      ND_SESSIONTIMEOUT: 24h
+      ND_TRANSCODINGCACHESIZE: 1GB
+      ND_IMAGECACHESIZE: 500MB
+      TZ: ${TIMEZONE}
+    volumes:
+      - "${HOMEDIR}/navidrome:/data"
+      - "${CACHEDIR}/navidrome:/data/cache"
+      - "${EXTERNAL_DIR}/another/music:/music:ro"
+    networks:
+      - proxy
+    labels:
+      caddy: http://music.${DOMAIN}
+      caddy.reverse_proxy: "{{upstreams 4533}}"
 
   komga:
     image: gotson/komga:1.3.1
