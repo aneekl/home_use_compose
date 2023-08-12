@@ -2,15 +2,28 @@ version: "3"
 
 networks:
   proxy:
-    external: true
 
 volumes:
   komga_tmp:
   cache:
 
 services:
+  caddy:
+    image: lucaslorentz/caddy-docker-proxy:2.8.5
+    container_name: caddy
+    restart: unless-stopped
+    networks:
+      - proxy
+    ports:
+      - "8081:80"
+    environment:
+      - CADDY_INGRESS_NETWORKS=media_proxy
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - caddy_data:/data
+
   navidrome:
-    image: deluan/navidrome:latest
+    image: deluan/navidrome:0.49.3
     container_name: navidrome
     user: 1000:1000
     restart: unless-stopped
