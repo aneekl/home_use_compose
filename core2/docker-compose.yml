@@ -1,5 +1,4 @@
-version: "2.1"
-services:
+version: "3"
 
 networks:
   proxy:
@@ -8,6 +7,7 @@ volumes:
   watch:
   caddy_data:
 
+services:
   caddy:
     image: lucaslorentz/caddy-docker-proxy:2.8.4
     container_name: caddy
