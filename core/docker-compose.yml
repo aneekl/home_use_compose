@@ -9,7 +9,6 @@ volumes:
 services:
   caddy:
     image: lucaslorentz/caddy-docker-proxy:2.8.5
-    container_name: caddy
     restart: unless-stopped
     networks:
       - proxy
