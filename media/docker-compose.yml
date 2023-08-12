@@ -6,6 +6,7 @@ networks:
 volumes:
   komga_tmp:
   cache:
+  caddy_data:
 
 services:
   caddy:
