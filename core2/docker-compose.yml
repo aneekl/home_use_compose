@@ -9,7 +9,7 @@ volumes:
 
 services:
   caddy:
-    image: lucaslorentz/caddy-docker-proxy:2.8.5
+    image: lucaslorentz/caddy-docker-proxy:2.8.6
     restart: unless-stopped
     networks:
       - proxy
