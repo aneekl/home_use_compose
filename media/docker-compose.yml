@@ -102,7 +102,7 @@ services:
       caddy.reverse_proxy: "{{upstreams 8086}}"
 
   prowlarr:
-    image: ghcr.io/onedr0p/prowlarr-develop:1.8.3.3880
+    image: ghcr.io/onedr0p/prowlarr-develop:1.8.4.3884
     container_name: prowlarr
     user: 1000:1000
     environment:
