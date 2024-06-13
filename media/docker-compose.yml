@@ -137,7 +137,7 @@ services:
       caddy.reverse_proxy: "{{upstreams 8096}}"
 
   jellyseerr:
-    image: fallenbagel/jellyseerr:1.6.0
+    image: fallenbagel/jellyseerr:1.9.2
     container_name: jellyseerr
     user: 1000:1000
     environment:
