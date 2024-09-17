@@ -83,7 +83,7 @@ services:
       caddy.reverse_proxy: "{{upstreams 8989}}"
 
   qbittorrent:
-    image: ghcr.io/onedr0p/qbittorrent:4.5.4
+    image: ghcr.io/onedr0p/qbittorrent:4.6.7
     container_name: qbittorrent
     user: 1000:1000
     environment:
