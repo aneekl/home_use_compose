@@ -21,7 +21,7 @@ services:
       - caddy_data:/data
 
   bitwardenrs:
-    image: vaultwarden/server:1.29.1-alpine
+    image: vaultwarden/server:1.33.2-alpine
     container_name: vaultwarden
     user: 1000:1000
     restart: unless-stopped
