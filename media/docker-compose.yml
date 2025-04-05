@@ -23,7 +23,7 @@ services:
       - caddy_data:/data
 
   navidrome:
-    image: deluan/navidrome:0.49.3
+    image: deluan/navidrome:0.55.2
     container_name: navidrome
     user: 1000:1000
     restart: unless-stopped
