@@ -117,7 +117,7 @@ services:
       caddy.reverse_proxy: "{{upstreams 9696}}"
 
   jellyfin:
-    image: jellyfin/jellyfin:10.8.10
+    image: jellyfin/jellyfin:10.10.7
     container_name: jellyfin
     user: 1000:1000
     environment:
