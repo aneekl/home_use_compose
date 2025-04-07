@@ -45,7 +45,7 @@ services:
       caddy.reverse_proxy: "{{upstreams 80}}"
 
   gitea:
-    image: gitea/gitea:1.20.3-rootless
+    image: gitea/gitea:1.23.7-rootless
     container_name: gitea
     user: 1000:1000
     restart: always
