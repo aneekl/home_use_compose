@@ -1,0 +1,70 @@
+x-pfbackup: &pfbackup
+  profiles:
+    - all
+    - backup
+
+networks:
+  resticker:
+
+services:
+  backup:
+    <<: *pfbackup
+    image: mazzolino/restic
+    hostname: docker
+    restart: unless-stopped
+    networks:
+      - resticker
+    environment:
+      RUN_ON_STARTUP: "false"
+      BACKUP_CRON: 0 30 3 * * *
+      RESTIC_REPOSITORY: b2:${REPO_NAME}
+      RESTIC_PASSWORD: ${REPO_PASSWORD}
+      RESTIC_BACKUP_SOURCES: /mnt/user/appdata
+      RESTIC_BACKUP_ARGS: >-
+        --tag appdata
+        --exclude *.tmp
+        --verbose
+      RESTIC_FORGET_ARGS: >-
+        --keep-last 10
+        --keep-daily 7
+        --keep-weekly 5
+        --keep-monthly 12
+      B2_ACCOUNT_ID: ${B2_ID}
+      B2_ACCOUNT_KEY: ${B2_KEY}
+      TZ: Asia/Bangkok
+    volumes:
+      - /mnt/user/appdata:/mnt/user/appdata:ro
+  prune:
+    <<: *pfbackup
+    image: mazzolino/restic
+    hostname: docker
+    restart: unless-stopped
+    networks:
+      - resticker
+    environment:
+      SKIP_INIT: "true"
+      RUN_ON_STARTUP: "true"
+      PRUNE_CRON: 0 0 4 * * *
+      RESTIC_REPOSITORY: b2:${REPO_NAME}
+      RESTIC_PASSWORD: ${REPO_PASSWORD}
+      B2_ACCOUNT_ID: ${B2_ID}
+      B2_ACCOUNT_KEY: ${B2_KEY}
+      TZ: Asia/Bangkok
+  check:
+    <<: *pfbackup
+    image: mazzolino/restic
+    hostname: docker
+    restart: unless-stopped
+    networks:
+      - resticker
+    environment:
+      SKIP_INIT: "true"
+      RUN_ON_STARTUP: "false"
+      CHECK_CRON: 0 15 5 * * *
+      RESTIC_CHECK_ARGS: >-
+        --read-data-subset=10%
+      RESTIC_REPOSITORY: b2:${REPO_NAME}
+      RESTIC_PASSWORD: ${REPO_PASSWORD}
+      B2_ACCOUNT_ID: ${B2_ID}
+      B2_ACCOUNT_KEY: ${B2_KEY}
+      TZ: Asia/Bangkok

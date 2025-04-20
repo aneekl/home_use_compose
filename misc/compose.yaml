@@ -1,0 +1,117 @@
+x-pfmisc: &pfmisc
+  profiles:
+    - misc
+    - all
+    - mainstay
+
+services:
+  s-pdf:
+    <<: *pfmisc
+    mem_limit: 512MB
+    container_name: StirlingPDF
+    image: frooodle/s-pdf:latest
+    networks:
+      - proxy
+    environment:
+      - TZ=Asia/Bangkok
+      - SYSTEM_GOOGLEVISIBILITY=false
+      - SYSTEM_DEFAULT_LOCALE=en_GB
+      - DOCKER_ENABLE_SECURITY=false
+      - METRICS_ENABLED=true
+      - SYSTEM_CONNECTIONTIMEOUTMINUTES=3000000
+      - SYSTEM_ROOT_URI_PATH=/
+    labels:
+      caddy: import reverse_proxy spdf {{upstreams 8080}}
+    volumes:
+      - ${APP_DIR}/Stirling-PDF/OCR:/usr/share/tesseract-ocr/5/tessdata
+      - ${APP_DIR}/Stirling-PDF/configs/:/configs
+      - ${APP_DIR}/Stirling-PDF/customFiles:/customFiles
+    restart: unless-stopped
+  vaultwarden:
+    <<: *pfmisc
+    container_name: vaultwarden
+    image: vaultwarden/server
+    networks:
+      - proxy
+    environment:
+      - TZ=Asia/Bangkok
+      - SIGNUPS_ALLOWED=false
+      - INVITATIONS_ALLOWED=false
+      - WEBSOCKET_ENABLED=true
+      - ADMIN_TOKEN=${VAULT_ADMIN_TOKEN}
+      - DOMAIN=https://vaultv.${DOMAIN_MAIN}
+    labels:
+      caddy: import reverse_proxy vaultv {{upstreams 80}}
+    volumes:
+      - ${APP_DIR}/vaultwarden:/data
+    restart: unless-stopped
+  it-tools:
+    <<: *pfmisc
+    container_name: it-tools
+    image: corentinth/it-tools
+    networks:
+      - proxy
+    environment:
+      - TZ=Asia/Bangkok
+    labels:
+      caddy: import reverse_proxy tools {{upstreams 80}}
+    restart: unless-stopped
+  actual-server:
+    <<: *pfmisc
+    container_name: actualserver
+    image: actualbudget/actual-server
+    networks:
+      - proxy
+    environment:
+      - TZ=Asia/Bangkok
+    labels:
+      caddy: import reverse_proxy actual {{upstreams 5006}}
+    volumes:
+      - ${APP_DIR}/actual-server:/data
+    restart: unless-stopped
+  bytestash:
+    <<: *pfmisc
+    container_name: bytestash
+    image: ghcr.io/jordan-dalby/bytestash:latest
+    restart: always
+    networks:
+      - proxy
+    volumes:
+      - ${APP_DIR}/bytestash/snippets:/data/snippets
+    environment:
+      BASE_PATH: ""
+      JWT_SECRET: ${BYTE_JWT}
+      TOKEN_EXPIRY: 24h
+      ALLOW_NEW_ACCOUNTS: "true"
+      DEBUG: "true"
+      DISABLE_ACCOUNTS: "false"
+      DISABLE_INTERNAL_ACCOUNTS: "false"
+      OIDC_ENABLED: "false"
+      OIDC_DISPLAY_NAME: ""
+      OIDC_ISSUER_URL: ""
+      OIDC_CLIENT_ID: ""
+      OIDC_CLIENT_SECRET: ""
+      OIDC_SCOPES: ""
+    labels:
+      caddy: import reverse_proxy bytestash {{upstreams 5000}}
+  release-bot:
+    <<: *pfmisc
+    container_name: release-bot
+    image: ghcr.io/janisv/release-bot:latest
+    restart: unless-stopped
+    environment:
+      - TELEGRAM_BOT_TOKEN=${RELEASE_TG_TOKEN}
+      - CHAT_ID=${RELEASE_TG_CHAT}
+      - MAX_REPOS_PER_CHAT=0
+    volumes:
+      - ${APP_DIR}/release_bot/data:/app/data
+    networks:
+      - proxy
+  mazanoke:
+    <<: *pfmisc
+    container_name: mazanoke
+    image: ghcr.io/civilblur/mazanoke:latest
+    networks:
+      - proxy
+    labels:
+      caddy: import reverse_proxy mazanoke {{upstreams 80}}

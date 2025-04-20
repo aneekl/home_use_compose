@@ -1,0 +1,21 @@
+x-pfha: &pfha
+  profiles:
+    - ha
+    - all
+services:
+  homeassistant:
+    <<: *pfha
+    container_name: homeassistant
+    image: lscr.io/linuxserver/homeassistant
+    networks:
+      br0:
+        ipv4_address: 192.168.1.30
+    environment:
+      - TZ=Asia/Bangkok
+      - PUID=99
+      - PGID=100
+      - UMASK=022
+      - DOCKER_MODS=linuxserver/mods:homeassistant-hacs
+    volumes:
+      - ${APP_DIR}/homeassistant:/config
+    restart: unless-stopped

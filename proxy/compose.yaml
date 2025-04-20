@@ -1,0 +1,96 @@
+x-pfproxy: &pfproxy
+  profiles:
+    - proxy
+    - all
+    - mainstay
+volumes:
+  caddy_data:
+
+services:
+  caddy:
+    <<: *pfproxy
+    mem_limit: 256m
+    container_name: caddy
+    image: ghcr.io/aneekl/caddy-docker:2.9.1
+    # build:
+    #   context: .
+    networks:
+      proxy: null
+      br0:
+        ipv4_address: 192.168.1.25
+    environment:
+      - TZ=Asia/Bangkok
+      - DESEC_API_TOKEN=${DESEC_KEY}
+      - CADDY_DOCKER_CADDYFILE_PATH=/etc/caddy/Caddyfile
+    volumes:
+      - caddy_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    restart: unless-stopped
+    configs:
+      - source: caddy-config
+        target: /etc/caddy/Caddyfile
+
+  tailscale:
+    <<: *pfproxy
+    mem_limit: 256m
+    container_name: tailscale
+    image: tailscale/tailscale:stable
+    network_mode: container:caddy
+    environment:
+      - TZ=Asia/Bangkok
+      - TS_HOSTNAME=unraid-docker
+      - TS_AUTHKEY=
+      - TS_ROUTES=
+      - TS_EXTRA_ARGS=
+      - TS_STATE_DIR=/state
+    volumes:
+      - /mnt/user/appdata/tailscale:/state
+    restart: unless-stopped
+    depends_on:
+      - caddy
+  tinyauth:
+    <<: *pfproxy
+    mem_limit: 256m
+    container_name: tinyauth
+    image: ghcr.io/steveiliop56/tinyauth:v3
+    restart: unless-stopped
+    networks:
+      proxy:
+    environment:
+      - APP_URL=https://auth.home52.dedyn.io
+      - SECRET=${TINY_SECRET}
+      - USERS=aneekl:$$2a$$10$$26NOulVc5rSa5YjLs3f2p.SmM8eRkIMrZFk6nNdfNaKJe4azB3DBe,thanee:$$2a$$10$$v7WaK6ulG2ndCWKc8N7pRO4Zh0E7/y2nC4MftYwoRqc3/O6.nW2dG
+    labels:
+      caddy: import reverse_proxy auth {{upstreams 3000}}
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+
+configs:
+  caddy-config:
+    content: |
+      {
+          email aneekl014@gmail.com
+          auto_https prefer_wildcard
+          acme_dns desec {
+            token {env.DESEC_API_TOKEN}
+          }
+      }
+      (auth_tinyauth) {
+        forward_auth tinyauth:3000 {
+          uri /api/auth/caddy
+          }
+      }
+      (reverse_proxy) {
+      {args[0]}.$DOMAIN_MAIN {
+            reverse_proxy {args[1]}
+        }
+      }
+      (reverse_proxy_auth) {
+      {args[0]}.$DOMAIN_MAIN {
+            import auth_tinyauth
+            reverse_proxy {args[1]}
+        }
+      }
+      *.$DOMAIN_MAIN {
+        abort
+      }

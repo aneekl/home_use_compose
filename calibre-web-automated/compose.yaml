@@ -1,0 +1,57 @@
+x-pfcalibre: &pfcalibre
+  profiles:
+    - calibre
+    - all
+
+networks:
+  calibre_internal:
+
+services:
+  calibre-web-automated:
+    <<: *pfcalibre
+    image: crocodilestick/calibre-web-automated:latest
+    container_name: cwa
+    networks:
+      - proxy
+    environment:
+      - PUID=99
+      - PGID=100
+      - TZ=Asia/Bangkok
+    volumes:
+      - ${APP_DIR}/calibre-web-automated:/config
+      - /dev/shm/calibre-web/ingest:/cwa-book-ingest
+      - ${MEDIA_TANK_DIR}/media/books:/calibre-library
+    restart: unless-stopped
+    labels:
+      caddy: import reverse_proxy cwa {{upstreams 8083}}
+  fetchly:
+    <<: *pfcalibre
+    image: lklynet/fetchly:latest
+    container_name: fetchly
+    networks:
+      - proxy
+      - calibre_internal
+    environment:
+      FLASK_PORT: 8084
+      FLASK_DEBUG: false
+      CLOUDFLARE_PROXY_URL: http://cloudflarebypassforscraping:8000
+      INGEST_DIR: /cwa-book-ingest
+      BOOK_LANGUAGE: en
+      UID: 99
+      GID: 100
+      CUSTOM_DNS: cloudflare
+      USE_DOH: true
+    restart: unless-stopped
+    volumes:
+      - /dev/shm/calibre-web/ingest:${INGEST_DIR:-/cwa-book-ingest}
+    labels:
+      caddy: import reverse_proxy fetchly {{upstreams 8084}}
+  cloudflarebypassforscraping:
+    <<: *pfcalibre
+    image: ghcr.io/sarperavci/cloudflarebypassforscraping:latest
+    container_name: cf4s
+    restart: unless-stopped
+    networks:
+      - calibre_internal
+    depends_on:
+      - fetchly

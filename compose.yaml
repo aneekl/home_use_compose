@@ -1,0 +1,8 @@
+include:
+  - networks.yaml
+  - proxy/compose.yaml
+  - resticker/compose.yaml
+  - seedbox/compose.yaml
+  - misc/compose.yaml
+  - calibre-web-automated/compose.yaml
+  - homeassistant/compose.yaml
