@@ -52,7 +52,7 @@ services:
     <<: *pfproxy
     mem_limit: 256m
     container_name: tinyauth
-    image: ghcr.io/steveiliop56/tinyauth:v3
+    image: ghcr.io/steveiliop56/tinyauth:v4
     restart: unless-stopped
     networks:
       proxy:
