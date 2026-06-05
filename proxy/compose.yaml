@@ -11,7 +11,7 @@ services:
     <<: *pfproxy
     mem_limit: 256m
     container_name: caddy
-    image: ghcr.io/aneekl/caddy-docker:2.9.1
+    image: ghcr.io/aneekl/caddy-docker:2.11.3
     # build:
     #   context: .
     networks:
